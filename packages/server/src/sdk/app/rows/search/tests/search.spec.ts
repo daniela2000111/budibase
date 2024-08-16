@@ -36,7 +36,7 @@ describe.each([
   const isInternal = isLucene || isSqs
   const config = new TestConfiguration()
 
-  let envCleanup: (() => void) | undefined
+  let envCleanup: (() => void)[] = []
   let datasource: Datasource | undefined
   let table: Table
 
@@ -45,11 +45,14 @@ describe.each([
       config.init()
     )
 
+    envCleanup.push(setCoreEnv({ SQL_LOGGING_ENABLE: "true" }))
     if (isSqs) {
-      envCleanup = setCoreEnv({
-        SQS_SEARCH_ENABLE: "true",
-        SQS_SEARCH_ENABLE_TENANTS: [config.getTenantId()],
-      })
+      envCleanup.push(
+        setCoreEnv({
+          SQS_SEARCH_ENABLE: "true",
+          SQS_SEARCH_ENABLE_TENANTS: [config.getTenantId()],
+        })
+      )
     }
 
     if (dsProvider) {
@@ -60,6 +63,7 @@ describe.each([
   })
 
   beforeEach(async () => {
+    jest.clearAllMocks()
     const idFieldSchema: NumberFieldMetadata | AutoColumnFieldMetadata =
       isInternal
         ? {
@@ -111,9 +115,7 @@ describe.each([
 
   afterAll(async () => {
     config.end()
-    if (envCleanup) {
-      envCleanup()
-    }
+    envCleanup.forEach(f => f())
   })
 
   it("querying by fields will always return data attribute columns", async () => {
@@ -249,4 +251,37 @@ describe.each([
         })
       }
     )
+
+  it("respects the query fields", async () => {
+    await config.doInContext(config.appId, async () => {
+      await config.api.table.save({
+        ...table,
+        schema: {
+          ...table.schema,
+          name: {
+            ...table.schema.name,
+            visible: true,
+          },
+          age: {
+            ...table.schema.age,
+            visible: false,
+          },
+        },
+      })
+
+      const logSpy = jest.spyOn(console, "log")
+      logSpy.mockClear()
+      await search({
+        tableId: table._id!,
+        query: {},
+      })
+      const expectedMessageRgx = new RegExp(
+        `^\\[SQL\\] \\[.+\\] query="select "a"."_id" as "a._id", "a"."_rev" as "a._rev", "a"."type" as "a.type", "a"."createdAt" as "a.createdAt", "a"."updatedAt" as "a.updatedAt", "a"."tableId" as "a.tableId", "a"."data_id" as "a.data_id", "a"."data_name" as "a.data_name", "a"."data_surname" as "a.data_surname", "a"."data_age" as "a.data_age", "a"."data_address" as "a.data_address" from \\(select \\* from \`${table._id}\` as \`a\` where \`a\`.\`_id\` like \\? order by \`a\`.\`_id\` asc limit \\?\\) as \`a\` where \`a\`.\`_id\` like \\? order by \`a\`.\`_id\` asc limit \\?" values="ro_%, 5000, ro_%, 5000"`
+      )
+      expect(logSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.stringMatching(expectedMessageRgx)
+      )
+    })
+  })
 })
