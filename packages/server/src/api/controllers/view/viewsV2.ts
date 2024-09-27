@@ -116,6 +116,10 @@ export async function update(ctx: Ctx<UpdateViewRequest, ViewResponse>) {
     primaryDisplay: view.primaryDisplay,
   }
 
+  if (view.sort?.field && !schema?.[view.sort.field]?.visible) {
+    ctx.throw(400, "Invalid sort field")
+  }
+
   const result = await sdk.views.update(tableId, parsedView)
   ctx.body = {
     data: result,
