@@ -15,15 +15,17 @@ export interface ViewResponseEnriched {
 const viewSchema = z.record(
   z.string(),
   z.object({
-    columns: z.record(
-      z.string(),
-      z.object({
-        visible: z.boolean(),
-        readonly: z.optional(z.boolean()),
-        order: z.optional(z.number()),
-        width: z.optional(z.number()),
-        icon: z.optional(z.string()),
-      })
+    columns: z.optional(
+      z.record(
+        z.string(),
+        z.object({
+          visible: z.boolean(),
+          readonly: z.optional(z.boolean()),
+          order: z.optional(z.number()),
+          width: z.optional(z.number()),
+          icon: z.optional(z.string()),
+        })
+      )
     ),
   })
 )
