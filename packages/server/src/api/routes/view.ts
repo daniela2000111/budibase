@@ -4,6 +4,8 @@ import * as rowController from "../controllers/row"
 import authorized, { authorizedResource } from "../../middleware/authorized"
 import { paramResource } from "../../middleware/resourceId"
 import { permissions } from "@budibase/backend-core"
+import { validateCreateViewRequest } from "@budibase/types"
+import { validateBody } from "../../middleware/zod-validator"
 
 const router: Router = new Router()
 
@@ -20,6 +22,7 @@ router
   .post(
     "/api/v2/views",
     authorized(permissions.BUILDER),
+    validateBody(validateCreateViewRequest),
     viewController.v2.create
   )
   .put(

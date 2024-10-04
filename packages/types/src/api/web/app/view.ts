@@ -12,13 +12,32 @@ export interface ViewResponseEnriched {
 
 // export interface CreateViewRequest extends Omit<ViewV2, "version" | "id"> {}
 
+const viewSchema = z.record(
+  z.string(),
+  z.object({
+    columns: z.record(
+      z.string(),
+      z.object({
+        visible: z.boolean(),
+        readonly: z.optional(z.boolean()),
+        order: z.optional(z.number()),
+        width: z.optional(z.number()),
+        icon: z.optional(z.string()),
+      })
+    ),
+  })
+)
+
 const view = z.object({
   name: z.string(),
   tableId: z.string(),
+  primaryDisplay: z.optional(z.string()),
   query: z.any(),
   sort: z.any(),
-  primaryDisplay: z.string(),
+  schema: z.optional(viewSchema),
 })
+
+export const validateCreateViewRequest = view
 
 export type CreateViewRequest = z.infer<typeof view>
 
