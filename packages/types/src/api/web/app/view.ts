@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { ViewV2 } from "../../../documents"
 import { ViewV2Enriched } from "../../../sdk/view"
+import { EmptyFilterOption, FilterGroupLogicalOperator } from "../../../sdk"
 
 export interface ViewResponse {
   data: ViewV2
@@ -37,6 +38,14 @@ const view = z.object({
   query: z.any(),
   sort: z.any(),
   schema: z.optional(viewSchema),
+  queryUI: z.optional(
+    z.strictObject({
+      logicalOperator: z.nativeEnum(FilterGroupLogicalOperator),
+      onEmptyFilter: z.optional(z.nativeEnum(EmptyFilterOption)),
+      groups: z.optional(z.any()),
+      filters: z.optional(z.any()),
+    })
+  ),
 })
 
 export const validateCreateViewRequest = view
