@@ -16,6 +16,7 @@ export interface ViewResponseEnriched {
 const viewSchema = z.record(
   z.string(),
   z.strictObject({
+    visible: z.boolean(),
     columns: z.optional(
       z.record(
         z.string(),

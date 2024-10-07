@@ -11,9 +11,9 @@ import {
 } from "./constants"
 
 export interface UIFieldMetadata {
+  visible: boolean
   order?: number
   width?: number
-  visible?: boolean
   icon?: string
 }
 
