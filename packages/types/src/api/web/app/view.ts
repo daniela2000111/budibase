@@ -16,41 +16,49 @@ export interface ViewResponseEnriched {
 const viewSchema = z.record(
   z.string(),
   z.object({
-    visible: z.boolean(),
-    columns: z.optional(
-      z.record(
+    visible: z.boolean().optional(),
+    readonly: z.boolean().optional(),
+    order: z.number().optional(),
+    width: z.number().optional(),
+    icon: z.string().optional(),
+    columns: z
+      .record(
         z.string(),
         z.object({
           visible: z.boolean(),
-          readonly: z.optional(z.boolean()),
-          order: z.optional(z.number()),
-          width: z.optional(z.number()),
-          icon: z.optional(z.string()),
+          readonly: z.boolean().optional(),
+          order: z.number().optional(),
+          width: z.number().optional(),
+          icon: z.string().optional(),
         })
       )
-    ),
+      .optional(),
   })
 )
 
 const view = z.object({
   name: z.string(),
   tableId: z.string(),
-  primaryDisplay: z.optional(z.string()),
+  primaryDisplay: z.string().optional(),
   query: z.any(),
   sort: z.any(),
-  schema: z.optional(viewSchema),
-  queryUI: z.optional(
-    z.object({
+  schema: viewSchema.optional(),
+  queryUI: z
+    .object({
       logicalOperator: z.nativeEnum(FilterGroupLogicalOperator),
-      onEmptyFilter: z.optional(z.nativeEnum(EmptyFilterOption)),
-      groups: z.optional(z.any()),
-      filters: z.optional(z.any()),
+      onEmptyFilter: z.nativeEnum(EmptyFilterOption).optional(),
+      groups: z.any().optional(),
+      filters: z.any().optional(),
     })
-  ),
+    .optional(),
 })
 
-export const validateCreateViewRequest = view
+export const createViewRequest = view
+export const updateViewRequest = view.extend({
+  id: z.string(),
+  version: z.literal(2),
+})
 
-export type CreateViewRequest = z.infer<typeof view>
+export type CreateViewRequest = z.infer<typeof createViewRequest>
 
-export interface UpdateViewRequest extends ViewV2 {}
+export type UpdateViewRequest = z.infer<typeof updateViewRequest>
