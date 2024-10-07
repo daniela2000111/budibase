@@ -39,6 +39,7 @@ export interface BasicViewFieldMetadata extends UIFieldMetadata {
 }
 
 export interface RelationSchemaField extends UIFieldMetadata {
+  visible: boolean
   readonly?: boolean
 }
 
