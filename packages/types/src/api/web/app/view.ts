@@ -15,11 +15,11 @@ export interface ViewResponseEnriched {
 
 const viewSchema = z.record(
   z.string(),
-  z.object({
+  z.strictObject({
     columns: z.optional(
       z.record(
         z.string(),
-        z.object({
+        z.strictObject({
           visible: z.boolean(),
           readonly: z.optional(z.boolean()),
           order: z.optional(z.number()),
@@ -31,7 +31,7 @@ const viewSchema = z.record(
   })
 )
 
-const view = z.object({
+const view = z.strictObject({
   name: z.string(),
   tableId: z.string(),
   primaryDisplay: z.optional(z.string()),
