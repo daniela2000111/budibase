@@ -15,12 +15,12 @@ export interface ViewResponseEnriched {
 
 const viewSchema = z.record(
   z.string(),
-  z.strictObject({
+  z.object({
     visible: z.boolean(),
     columns: z.optional(
       z.record(
         z.string(),
-        z.strictObject({
+        z.object({
           visible: z.boolean(),
           readonly: z.optional(z.boolean()),
           order: z.optional(z.number()),
@@ -32,7 +32,7 @@ const viewSchema = z.record(
   })
 )
 
-const view = z.strictObject({
+const view = z.object({
   name: z.string(),
   tableId: z.string(),
   primaryDisplay: z.optional(z.string()),
@@ -40,7 +40,7 @@ const view = z.strictObject({
   sort: z.any(),
   schema: z.optional(viewSchema),
   queryUI: z.optional(
-    z.strictObject({
+    z.object({
       logicalOperator: z.nativeEnum(FilterGroupLogicalOperator),
       onEmptyFilter: z.optional(z.nativeEnum(EmptyFilterOption)),
       groups: z.optional(z.any()),
