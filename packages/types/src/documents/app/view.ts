@@ -2,6 +2,7 @@ import { LegacyFilter, SearchFilterGroup, SortOrder, SortType } from "../../api"
 import { UIFieldMetadata } from "./table"
 import { Document } from "../document"
 import { DBView, SearchFilters } from "../../sdk"
+import { z } from "zod"
 
 export type ViewTemplateOpts = {
   field: string
@@ -33,44 +34,31 @@ export interface View {
   groupBy?: string
 }
 
-export interface BasicViewFieldMetadata extends UIFieldMetadata {
-  readonly?: boolean
-  columns?: Record<string, RelationSchemaField>
-}
+const basicViewFieldMetadata = z.object({
+  visible: z.boolean(),
+  readonly: z.boolean().optional(),
+  order: z.number().optional(),
+  width: z.number().optional(),
+  icon: z.string().optional(),
+  columns: z
+    .record(
+      z.string(),
+      z.object({
+        visible: z.boolean(),
+        readonly: z.boolean().optional(),
+        order: z.number().optional(),
+        width: z.number().optional(),
+        icon: z.string().optional(),
+      })
+    )
+    .optional(),
+})
+export type BasicViewFieldMetadata = z.infer<typeof basicViewFieldMetadata>
 
 export interface RelationSchemaField extends UIFieldMetadata {
   visible: boolean
   readonly?: boolean
 }
-
-export interface NumericCalculationFieldMetadata
-  extends BasicViewFieldMetadata {
-  calculationType:
-    | CalculationType.MIN
-    | CalculationType.MAX
-    | CalculationType.SUM
-    | CalculationType.AVG
-  field: string
-}
-
-export interface CountCalculationFieldMetadata extends BasicViewFieldMetadata {
-  calculationType: CalculationType.COUNT
-}
-
-export interface CountDistinctCalculationFieldMetadata
-  extends CountCalculationFieldMetadata {
-  distinct: true
-  field: string
-}
-
-export type ViewCalculationFieldMetadata =
-  | NumericCalculationFieldMetadata
-  | CountCalculationFieldMetadata
-  | CountDistinctCalculationFieldMetadata
-
-export type ViewFieldMetadata =
-  | BasicViewFieldMetadata
-  | ViewCalculationFieldMetadata
 
 export enum CalculationType {
   SUM = "sum",
@@ -79,6 +67,50 @@ export enum CalculationType {
   MIN = "min",
   MAX = "max",
 }
+
+const numericCalculationFieldMetadata = basicViewFieldMetadata.extend({
+  calculationType: z.enum([
+    CalculationType.MIN,
+    CalculationType.MAX,
+    CalculationType.SUM,
+    CalculationType.AVG,
+  ]),
+  field: z.string(),
+})
+export type NumericCalculationFieldMetadata = z.infer<
+  typeof numericCalculationFieldMetadata
+>
+
+const countCalculationFieldMetadata = basicViewFieldMetadata.extend({
+  calculationType: z.literal(CalculationType.COUNT),
+})
+export type CountCalculationFieldMetadata = z.infer<
+  typeof countCalculationFieldMetadata
+>
+
+const countDistinctCalculationFieldMetadata =
+  countCalculationFieldMetadata.extend({
+    distinct: z.literal(true),
+    field: z.string(),
+  })
+export type CountDistinctCalculationFieldMetadata = z.infer<
+  typeof countDistinctCalculationFieldMetadata
+>
+
+const viewCalculationFieldMetadata = z.union([
+  numericCalculationFieldMetadata,
+  countCalculationFieldMetadata,
+  countDistinctCalculationFieldMetadata,
+])
+export type ViewCalculationFieldMetadata = z.infer<
+  typeof viewCalculationFieldMetadata
+>
+
+const viewFieldMetadata = z.union([
+  basicViewFieldMetadata,
+  viewCalculationFieldMetadata,
+])
+export type ViewFieldMetadata = z.infer<typeof viewFieldMetadata>
 
 export interface ViewV2 {
   version: 2
@@ -97,7 +129,8 @@ export interface ViewV2 {
   schema?: ViewV2Schema
 }
 
-export type ViewV2Schema = Record<string, ViewFieldMetadata>
+export const viewV2Schema = z.record(z.string(), viewFieldMetadata)
+export type ViewV2Schema = z.infer<typeof viewV2Schema>
 
 export type ViewSchema = ViewCountOrSumSchema | ViewStatisticsSchema
 

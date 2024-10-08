@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { ViewV2 } from "../../../documents"
+import { ViewV2, viewV2Schema } from "../../../documents"
 import { ViewV2Enriched } from "../../../sdk/view"
 import { EmptyFilterOption, FilterGroupLogicalOperator } from "../../../sdk"
 
@@ -13,36 +13,13 @@ export interface ViewResponseEnriched {
 
 // export interface CreateViewRequest extends Omit<ViewV2, "version" | "id"> {}
 
-const viewSchema = z.record(
-  z.string(),
-  z.object({
-    visible: z.boolean().optional(),
-    readonly: z.boolean().optional(),
-    order: z.number().optional(),
-    width: z.number().optional(),
-    icon: z.string().optional(),
-    columns: z
-      .record(
-        z.string(),
-        z.object({
-          visible: z.boolean(),
-          readonly: z.boolean().optional(),
-          order: z.number().optional(),
-          width: z.number().optional(),
-          icon: z.string().optional(),
-        })
-      )
-      .optional(),
-  })
-)
-
 const view = z.object({
   name: z.string(),
   tableId: z.string(),
   primaryDisplay: z.string().optional(),
   query: z.any(),
   sort: z.any(),
-  schema: viewSchema.optional(),
+  schema: viewV2Schema.optional(),
   queryUI: z
     .object({
       logicalOperator: z.nativeEnum(FilterGroupLogicalOperator),
