@@ -11,7 +11,7 @@
     "@budibase/types": "0.0.0",
     "dayjs": "^1.10.8",
     "lodash": "4.17.21",
-    "shortid": "2.2.15",
+    "shortid": "2.2.17",
     "socket.io-client": "^4.7.5"
   }
 }
